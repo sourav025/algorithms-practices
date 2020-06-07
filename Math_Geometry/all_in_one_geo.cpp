@@ -33,21 +33,6 @@
 #include <complex>
 #include <valarray>
 
-//计算几何注意 eps
-//叉积 cross 是三角形面积的两倍
-
-//向量 (x,y) 逆时针旋转 a 角，x'=x cos a -y sin a , y'=x sin a+y cos a
-//确保 不是 0 向量
-
-//直线参数方程 分别为 P+t1v , Q+t2w , u=P-Q , 求交点 , 解得
-//t1=cross(w,u)/cross(v,w)
-//t2=cross(v,u)/cross(v,w)
-//确保有唯一个交点
-
-//求点 P 到直线 AB距离
-
-//一般是弧度不是角度
-
 using namespace std;
 map<long long,int> tree;
 map<long long,int>::iterator iter;
@@ -111,62 +96,47 @@ bool operator==(const Point& a,const Point& b)
 }
 double Dot(Vector a,Vector b)
 {
-    //计算点积
     return a.x*b.x+a.y*b.y;
 }
 double Cross(Vector a,Vector b)
 {
-    //计算叉积
     return a.x*b.y-a.y*b.x;
 }
 double Length(Vector a)
 {
-    //计算长度
     return sqrt(Dot(a,a));
 }
 double Angle(Vector A,Vector B)
 {
-    //计算AB夹角
     return acos(Dot(A,B)/Length(A)/Length(B));
 }
 double Area2(Point A,Point B,Point C)
 {
-    //计算三角形ABC的面积的二倍
     return Cross(B-A,C-A);
 }
 Vector Rotate(Vector a,double rad)
 {
-    //向量逆时针旋转rad角
-    //rad弧度
     return Vector(a.x*cos(rad)-a.y*sin(rad),a.x*sin(rad)+a.y*cos(rad));
 }
 Vector Normal(Vector a)
 {
-    //计算向量的单位法线，即左转90度，长度归一化。
-    //用前确保A不是零向量
     double l=Length(a);
     return Vector(-a.y/l,a.x/l);
 }
 Point GetLineIntersection(Point P,Vector v,Point Q,Vector w)
 {
-    //求解直线P+t*v  Q+t*w 的交点
-    //用前确保两条直线有唯一交点
-    //当且仅当cross(v,w)!=0
     Vector u=P-Q;
     double t=Cross(w,u)/Cross(v,w);
     return P+v*t;
 }
 double DistanceToLine(Point p,Point a,Point b)
 {
-    //计算点P到直线AB距离
     Point v1=b-a;
     Point v2=p-a;
     return fabs(Cross(v1,v2))/Length(v1);
-    //如果不取绝对值，得的是有向距离
 }
 double DistanceToSegment(Point p,Point a,Point b)
 {
-    //计算点P到线段AB距离
     if(a==b)
     {
         return Length(p-a);
@@ -188,16 +158,11 @@ double DistanceToSegment(Point p,Point a,Point b)
 }
 Point GetLineProjection(Point p,Point a,Point b)
 {
-    //求点在直线上投影
-    //AB直线:A+tv , 投影Q的参数为 t0
-    //由 Dot(v,P-(A+t0*v))==0 得出
     Vector v=b-a;
     return a+v*(Dot(v,p-a)/Dot(v,v));
 }
 bool SegmentProperIntersection(Point a1,Point a2,Point b1,Point b2)
 {
-    //线段相交判定
-    double c1=Cross(a2-a1,b1-a1);
     double c2=Cross(a2-a1,b2-a1);
     double c3=Cross(b2-b1,a1-b1);
     double c4=Cross(b2-b1,a2-b1);
@@ -205,12 +170,10 @@ bool SegmentProperIntersection(Point a1,Point a2,Point b1,Point b2)
 }
 bool OnSegment(Point p,Point a1,Point a2)
 {
-    //判断一个点在线段上
     return dcmp(Cross(a1-p,a2-p))==0&&dcmp(Dot(a1-p,a2-p))<0;
 }
 double ConvexPolygonArea(Point* p,int n)
 {
-    //从第一个顶点出发把凸多边形分成 n-2 个三角形
     double area=0;
     for(int i=1;i<n-1;i++)
     {
@@ -234,13 +197,11 @@ struct Circle
     }
     Point point(double a)
     {
-        //通过圆心角来求坐标
         return Point(c.x+cos(a)*r,c.y+sin(a)*r);
     }
 };
 struct Line
 {
-    //有向直线,左边就是对应的半平面
     Vector v;
     Point p;
     double ang;
@@ -262,12 +223,10 @@ struct Line
 };
 bool OnLeft(Line l,Point pp)
 {
-    //点Ｐ在有向直线的左边，线上不算
     return Cross(l.v,pp-l.p)>0;
 }
 Point GetLineIntersection(Line a,Line b)
 {
-    //二直线相交，假设交点唯一存在
     Vector u=a.p-b.p;
     double t=Cross(b.v,u)/Cross(a.v,b.v);
     return a.p+a.v*t;
@@ -282,22 +241,22 @@ int getLineCircleIntersection(Line l,Circle cc,double& t1,double& t2,vector<Poin
     double e=a*a+c*c;
     double f=2*(a*b+c*d);
     double g=b*b+d*d-cc.r*cc.r;
-    double delta=f*f-4*e*g;//判别式
+    double delta=f*f-4*e*g;
     if(dcmp(delta)<0)
     {
-        return 0;//相离
+        return 0;
     }
     if(dcmp(delta)==0)
     {
         t1=t2=-f/(2*e);
         sol.push_back(l.point(t1));
-        return 1;//相切
+        return 1;
     }
     t1=(-f-sqrt(delta))/(2*e);
     sol.push_back(l.point(t1));
     t2=(-f+sqrt(delta))/(2*e);
     sol.push_back(l.point(t2));
-    return 2;//相交
+    return 2;
 }
 double angle(Vector v)
 {
@@ -309,7 +268,7 @@ int getCircleCircleIntersection(Circle c1,Circle c2,vector<Point>& sol)
     if(dcmp(d)==0)
     {
         if(dcmp(c1.r-c2.r)==0)
-        return -1;//两圆重合
+        return -1;
         return 0;
     }
     if(dcmp(c1.r+c2.r-d)<0)
@@ -317,9 +276,8 @@ int getCircleCircleIntersection(Circle c1,Circle c2,vector<Point>& sol)
     if(dcmp(fabs(c1.r-c2.r)-d)>0)
     return 0;
 
-    double a=angle(c2.c-c1.c);//向量C1C2的极角
+    double a=angle(c2.c-c1.c);
     double da=acos((c1.r*c1.r+d*d-c2.r*c2.r)/(2*c1.r*d));
-    //计算C1C2到C1P1的角
     Point p1=c1.point(a-da);
     Point p2=c1.point(a+da);
     sol.push_back(p1);
@@ -361,17 +319,17 @@ int getTangents(Circle a,Circle b,Point* aa,Point* bb)
     int rsum=a.r+b.r;
     if(d2<rdiff*rdiff)
     {
-        return 0;//内含
+        return 0;
     }
     double base=atan2(b.c.y-a.c.y,b.c.x-a.c.x);
     if(d2==0&&a.r==b.r)
-    return -1;//无穷多条切线
+    return -1;
     if(d2==rdiff*rdiff)
     {
         aa[cnt]=a.point(base);
         bb[cnt]=b.point(base);
         cnt++;
-        return 1;//内切，1条
+        return 1;
     }
     double ang=acos((a.r-b.r)/sqrt(d2));
     aa[cnt]=a.point(base+ang);
@@ -385,7 +343,7 @@ int getTangents(Circle a,Circle b,Point* aa,Point* bb)
     {
         aa[cnt]=a.point(base);
         bb[cnt]=b.point(base+PI);
-        cnt++;//一条内公切线
+        cnt++;
     }
     else
     if(d2>rsum*rsum)
@@ -396,13 +354,12 @@ int getTangents(Circle a,Circle b,Point* aa,Point* bb)
         cnt++;
         aa[cnt]=a.point(base-ang);
         bb[cnt]=b.point(PI+base-ang);
-        cnt++;//两条内公切线
+        cnt++;
     }
     return cnt;
 }
 Circle CircumscribedCircle(Point p1,Point p2,Point p3)
 {
-    //三角形外接圆
     double bx=p2.x-p1.x;
     double by=p2.y-p1.y;
     double cx=p3.x-p1.x;
@@ -415,7 +372,6 @@ Circle CircumscribedCircle(Point p1,Point p2,Point p3)
 }
 Circle InscribedCircle(Point p1,Point p2,Point p3)
 {
-    //三角形内切圆
     double a=Length(p2-p3);
     double b=Length(p3-p1);
     double c=Length(p1-p2);
@@ -428,7 +384,6 @@ double torad(double deg)
 }
 void get_coord(double r,double lat,double lng,double& x,double& y,double& z)
 {
-    //经纬度(角度)转化为空间坐标
     lat=torad(lat);
     lng=torad(lng);
     x=r*cos(lat)*cos(lng);
@@ -463,7 +418,7 @@ int isPointInPolygon(Point p,Polygon po)
     for(int i=0;i<n;i++)
     {
         if(OnSegment(p,po[i],po[(i+1)%n]))
-        return -1;//在边界上
+        return -1;
         int k=dcmp(Cross(po[(i+1)%n]-po[i],p-po[i]));
         int d1=dcmp(po[i].y-p.y);
         int d2=dcmp(po[(i+1)%n].y-p.y);
@@ -473,8 +428,8 @@ int isPointInPolygon(Point p,Polygon po)
         wn--;
     }
     if(wn!=0)
-    return 1;//内部
-    return 0;//外部
+    return 1;
+    return 0;
 }
 int ConvexHull(Point* p,int n,Point* ch)
 {
@@ -579,7 +534,6 @@ int HalfplaneIntersection(Line* l,int n,Point* poly)
 }
 void FindBorder(Point* p,int n)
 {
-    //寻找多边形边界
     int num;
     Point ans[10005];
     Point z[205];
@@ -673,8 +627,6 @@ Polygon cutPolygon(Polygon& po,Point a,Point s)
     ans.n=sum;
     return ans;
 }
-//--------------For 3d Vectors----------
-//三维计算几何
 struct Point3
 {
     double x,y,z;
@@ -724,25 +676,19 @@ double Angle(Vector3 a,Vector3 b)
 {
     return acos(Dot(a,b)/Length(a)/Length(b));
 }
-//平面用点法式表示(p0,n),p0是平面上一个点，n 是平面法向量
 double DistanceToPlane(Point3 &p,Point3 &p0,Vector3 &n)
 {
-    //点p到平面 p0-n 的的距离，n 是单位向量
     return fabs(Dot(p-p0,n));
-    //如果不取绝对值，得到的是有向距离
 }
 Point3 GetPlaneProjection(Point3 &p,Point3 &p0,Vector3 &n)
 {
-    //点 p 在平面 p0-n 上的投影，n 是单位向量
     return p-n*Dot(p-p0,n);
 }
 Point3 LinePlaneIntersection(Point3 p1,Point3 p2,Point3 p0,Vector3 n)
 {
-    //直线 p1-p2 到平面 p0-n 的交点
-    //分母为 0 对应直线和平面平行，直线在平面上
     Vector3 v=p2-p1;
-    double t=(Dot(n,p0-p1)/Dot(n,p2-p1));//判断分母是否为 0
-    return p1+v*t;//如果是线段，判断 t 是不是在 0 和 1 之间
+    double t=(Dot(n,p0-p1)/Dot(n,p2-p1));
+    return p1+v*t;
 }
 Vector3 Cross(Vector3 a,Vector3 b)
 {
@@ -754,7 +700,6 @@ double Area2(Point3 a,Point3 b,Point3 c)
 }
 bool PointInTri(Point3 p,Point3 p0,Point3 p1,Point3 p2)
 {
-    //判断点在三角形内，先判断是否在三角形所在的平面，再用面积关系
     double area1=Area2(p,p0,p1);
     double area2=Area2(p,p2,p1);
     double area3=Area2(p,p0,p2);
@@ -762,8 +707,6 @@ bool PointInTri(Point3 p,Point3 p0,Point3 p1,Point3 p2)
 }
 bool TriSegIntersection(Point3 p0,Point3 p1,Point3 p2,Point3 a,Point3 b,Point3 &p)
 {
-    //判断线段和三角形是否相交
-    //没有考虑线段在平面上的情况
     Vector3 n=Cross(p1-p0,p2-p0);
     if(dcmp(Dot(n,b-a))==0)
         return false;
@@ -772,19 +715,17 @@ bool TriSegIntersection(Point3 p0,Point3 p1,Point3 p2,Point3 a,Point3 b,Point3 &
         double t=Dot(n,p0-a)/Dot(n,b-a);
         if(dcmp(t)<0||dcmp(t-1)>0)
             return false;
-        p=a+(b-a)*t;//计算交点
-        return PointInTri(p,p0,p1,p2);//判断交点在三角形内
+        p=a+(b-a)*t;
+        return PointInTri(p,p0,p1,p2);
     }
 }
 double DistanceToLine(Point3 p,Point3 a,Point3 b)
 {
-    //点 p 到直线 ab 距离
     Vector3 v1=b-a,v2=p-a;
     return Length(Cross(v1,v2))/Length(v1);
 }
 double DistanceToSegment(Point3 p,Point3 a,Point3 b)
 {
-    //点 p 到线段 ab 距离
     if(a==b)
         return Length(p-a);
     Vector3 v1=b-a,v2=p-a,v3=p-b;
@@ -806,24 +747,18 @@ int main()
     int T;
     Point z[5],v,x[5];
     scanf("%d",&T);
-    // printf("%d",Length(Point(0,0),Point(3,4)));
     for(int idx=0;idx<T;idx++)
     {
         printf("Case %d: ",idx+1);
         for(int q=0;q<4;q++)
             scanf("%lf%lf",&x[q].x,&x[q].y);
-        // sort(z,z+4);
-        // v=z[2];
        if(ConvexHull(x,4,z)<4)
        {
             printf("Ordinary Quadrilateral\n");
             continue;
 }
-             // for(int q=0;q<4;q++)
-         // printf("%lf %lf\n",z[q].x,z[q].y);
         if(dcmp(Cross(z[0]-z[3],z[1]-z[2]))==0&&dcmp(Cross(z[0]-z[1],z[3]-z[2]))==0)
         {
-         // printf("*\n");
          if(dcmp(Length(z[0]-z[1])-Length(z[1]-z[2]))==0)
          {
              if(dcmp(Dot(z[1]-z[0],z[1]-z[2]))==0)
@@ -841,7 +776,6 @@ int main()
         }
         else
         {
-         // printf("*\n");
          if(dcmp(Cross(z[0]-z[3],z[1]-z[2]))==0||dcmp(Cross(z[0]-z[1],z[3]-z[2]))==0)
              printf("Trapezium\n");
          else
